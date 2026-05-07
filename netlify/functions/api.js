@@ -21,13 +21,16 @@ exports.handler = async (event, context) => {
 
   if (nextPath && !nextPath.startsWith('/')) nextPath = `/${nextPath}`;
 
-  if (nextPath === '/' || nextPath === '') {
-    event.path = '/api';
-  } else if (nextPath.startsWith('/api/')) {
+  // Express app mounts API at /api, so force mapping to that prefix.
+  // If Netlify already gave us a path that begins with /api, keep it.
+  if (nextPath.startsWith('/api')) {
     event.path = nextPath;
+  } else if (nextPath === '/' || nextPath === '') {
+    event.path = '/api';
   } else {
     event.path = `/api${nextPath}`;
   }
+
 
   return handler(event, context);
 };
