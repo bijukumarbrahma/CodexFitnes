@@ -76,7 +76,7 @@ function requireAuth() {
 }
 
 function redirectIfAuthed() {
-  if (storage.token && ['home', 'login', 'register'].includes(page())) {
+  if (storage.token && page() === 'home') {
     location.href = 'dashboard.html';
   }
 }
@@ -428,6 +428,12 @@ async function loadDashboard() {
     const state = await api('/users/dashboard');
     renderDashboard(state);
   } catch (error) {
+    if (/invalid|expired|authentication/i.test(error.message)) {
+      localStorage.removeItem('fit_token');
+      localStorage.removeItem('fit_user');
+      location.href = 'login.html';
+      return;
+    }
     toast(error.message);
   }
 }
