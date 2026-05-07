@@ -291,12 +291,27 @@ module.exports = async function supabaseApi(req, res, next) {
     }
 
     if (method === 'POST' && path === '/auth/login') {
+      // Minimal diagnostics (helpful on Netlify)
+      try {
+        console.log('[auth/login]', {
+          reqPath: path,
+          method,
+          hasSupabase: !!(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY && process.env.SUPABASE_SERVICE_ROLE_KEY),
+          jwtSecretSet: !!process.env.JWT_SECRET
+        });
+      } catch {}
+
       const email = String(req.body.email || '').trim().toLowerCase();
       const password = String(req.body.password || '');
       const login = await authClient.auth.signInWithPassword({ email, password });
       if (login.error || !login.data.user) {
+        console.log('[auth/login] signIn failed', {
+          message: login.error?.message || 'unknown',
+          status: login.error?.status
+        });
         return res.status(401).json({ message: login.error?.message || 'Invalid email or password' });
       }
+
 
       let { data: profile, error } = await client.from('profiles').select('*').eq('id', login.data.user.id).single();
       if (error || !profile) {
