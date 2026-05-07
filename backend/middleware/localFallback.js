@@ -56,7 +56,15 @@ function localDashboard(user) {
   const bodyStats = db.bodyStats.filter((stat) => stat.user === user._id).sort((a, b) => a.date.localeCompare(b.date));
   const goals = db.goals.filter((goal) => goal.user === user._id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const photos = db.photos.filter((photo) => photo.user === user._id);
+  const stepLogs = (db.steps || []).filter((log) => log.user === user._id);
   const todayNutrition = nutritionLogs.find((log) => log.date === today);
+  const todaySteps = stepLogs.find((log) => log.date === today) || {
+    steps: 0,
+    goal: 10000,
+    distanceKm: 0,
+    calories: 0,
+    activeMinutes: 0
+  };
   const macroTotals = sumMeals(todayNutrition);
   const completed = workouts.filter((workout) => workout.status === 'completed');
   const latestBody = bodyStats.at(-1);
@@ -80,6 +88,12 @@ function localDashboard(user) {
       weeklyWorkouts: completed.length,
       caloriesBurned: completed.reduce((sum, workout) => sum + (Number(workout.caloriesBurned) || 0), 0),
       goalCompletion,
+      steps: todaySteps.steps,
+      stepGoal: todaySteps.goal,
+      stepDistanceKm: todaySteps.distanceKm,
+      stepCalories: todaySteps.calories,
+      stepActiveMinutes: todaySteps.activeMinutes,
+      stepCompletion: Math.min(100, Math.round((todaySteps.steps / todaySteps.goal) * 100)),
       bmi,
       weight,
       weightDelta: previousBody ? +(weight - previousBody.weightKg).toFixed(1) : 0,
@@ -90,10 +104,12 @@ function localDashboard(user) {
     bodyStats,
     goals,
     photos,
+    stepLogs,
     chart: {
       labels: days.map((day) => day.slice(5)),
       calories: days.map((day) => sumMeals(nutritionLogs.find((log) => log.date === day)).calories),
       workouts: days.map((day) => completed.filter((workout) => (workout.completedAt || workout.createdAt || '').slice(0, 10) === day).length),
+      steps: days.map((day) => stepLogs.find((log) => log.date === day)?.steps || 0),
       weight: bodyStats.slice(-14).map((stat) => ({ date: stat.date.slice(5), value: stat.weightKg })),
       strength: completed.slice(0, 12).reverse().map((workout) => ({
         label: workout.title.slice(0, 10),
@@ -278,6 +294,42 @@ module.exports = async function localFallback(req, res, next) {
       db.goals.push(goal);
       store.write(db);
       return res.status(201).json({ goal });
+    }
+
+    if (method === 'GET' && path === '/steps') {
+      const db = store.read();
+      const logs = (db.steps || []).filter((log) => log.user === user._id).sort((a, b) => b.date.localeCompare(a.date));
+      return res.json({ logs });
+    }
+
+    if (method === 'GET' && path === '/steps/today') {
+      const db = store.read();
+      const date = req.query.date || todayKey();
+      const log = (db.steps || []).find((item) => item.user === user._id && item.date === date);
+      return res.json({ log: log || { date, steps: 0, goal: 10000, distanceKm: 0, calories: 0, activeMinutes: 0 } });
+    }
+
+    if (method === 'POST' && path === '/steps') {
+      const db = store.read();
+      db.steps = db.steps || [];
+      const date = req.body.date || todayKey();
+      const goal = Number(req.body.goal) || 10000;
+      const existing = db.steps.find((item) => item.user === user._id && item.date === date);
+      const explicitSteps = req.body.steps === undefined ? null : Number(req.body.steps);
+      const steps = Math.max(0, explicitSteps !== null ? explicitSteps : (existing?.steps || 0) + (Number(req.body.increment) || 0));
+      const log = existing || { _id: store.id(), user: user._id, date, createdAt: now };
+
+      log.steps = steps;
+      log.goal = goal;
+      log.distanceKm = +(steps * 0.00078).toFixed(2);
+      log.calories = Math.round(steps * 0.04);
+      log.activeMinutes = Math.round(steps / 110);
+      log.source = req.body.source === 'sensor' ? 'sensor' : 'manual';
+      log.updatedAt = now;
+
+      if (!existing) db.steps.push(log);
+      store.write(db);
+      return res.json({ log });
     }
 
     if (method === 'GET' && path === '/admin/overview' && user.role === 'admin') {

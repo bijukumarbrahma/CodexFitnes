@@ -5,6 +5,7 @@ const Workout = require('./models/Workout');
 const NutritionLog = require('./models/NutritionLog');
 const BodyStat = require('./models/BodyStat');
 const Goal = require('./models/Goal');
+const StepLog = require('./models/StepLog');
 
 const uri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/codex_fitness';
 
@@ -23,6 +24,7 @@ async function seed() {
       NutritionLog.deleteMany({ user: existingDemo._id }),
       BodyStat.deleteMany({ user: existingDemo._id }),
       Goal.deleteMany({ user: existingDemo._id }),
+      StepLog.deleteMany({ user: existingDemo._id }),
       User.deleteOne({ _id: existingDemo._id })
     ]);
   }
@@ -91,6 +93,13 @@ async function seed() {
     { user: user._id, title: 'Bench press 100kg', category: 'Strength', current: 90, target: 100, unit: 'kg' },
     { user: user._id, title: 'Four workouts weekly', category: 'Consistency', current: 3, target: 4, unit: 'sessions' },
     { user: user._id, title: 'Protein target streak', category: 'Nutrition', current: 5, target: 7, unit: 'days' }
+  ]);
+
+  await StepLog.create([
+    { user: user._id, date: dateKey(-5), steps: 7400, goal: 10000, distanceKm: 5.77, calories: 296, activeMinutes: 67, source: 'manual' },
+    { user: user._id, date: dateKey(-4), steps: 10250, goal: 10000, distanceKm: 8, calories: 410, activeMinutes: 93, source: 'manual' },
+    { user: user._id, date: dateKey(-2), steps: 6350, goal: 10000, distanceKm: 4.95, calories: 254, activeMinutes: 58, source: 'manual' },
+    { user: user._id, date: dateKey(), steps: 4860, goal: 10000, distanceKm: 3.79, calories: 194, activeMinutes: 44, source: 'manual' }
   ]);
 
   await mongoose.disconnect();

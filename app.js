@@ -18,6 +18,7 @@ const nutritionRoutes = require('./backend/routes/nutritionRoutes');
 const bodyRoutes = require('./backend/routes/bodyRoutes');
 const goalRoutes = require('./backend/routes/goalRoutes');
 const photoRoutes = require('./backend/routes/photoRoutes');
+const stepRoutes = require('./backend/routes/stepRoutes');
 const adminRoutes = require('./backend/routes/adminRoutes');
 
 const app = express();
@@ -56,6 +57,7 @@ app.use('/api/nutrition', nutritionRoutes);
 app.use('/api/body', bodyRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/photos', photoRoutes);
+app.use('/api/steps', stepRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.get('*', (req, res) => {

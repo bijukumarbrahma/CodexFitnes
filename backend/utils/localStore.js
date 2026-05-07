@@ -9,7 +9,8 @@ const empty = {
   nutrition: [],
   bodyStats: [],
   goals: [],
-  photos: []
+  photos: [],
+  steps: []
 };
 
 exports.id = () => crypto.randomBytes(12).toString('hex');

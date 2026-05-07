@@ -12,6 +12,13 @@ const storage = {
 
 let dashboardState = null;
 const chartInstances = {};
+const stepCounterState = {
+  running: false,
+  sessionSteps: 0,
+  lastPeakAt: 0,
+  lastMagnitude: 0,
+  handler: null
+};
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -321,6 +328,42 @@ function renderGoals(goals = []) {
   }).join('') : '<div class="empty-state">Set a target for strength, weight, nutrition, consistency, or recovery.</div>';
 }
 
+function renderSteps(state) {
+  const stats = state.stats || {};
+  const logs = state.stepLogs || [];
+  const steps = Number(stats.steps) || 0;
+  const goal = Number(stats.stepGoal) || 10000;
+  const completion = Math.min(100, Math.round((steps / goal) * 100));
+
+  setText('stepsValue', steps.toLocaleString());
+  setText('stepsSub', `of ${goal.toLocaleString()} goal`);
+  setText('stepsLargeValue', steps.toLocaleString());
+  setText('stepsGoalText', `${steps.toLocaleString()} / ${goal.toLocaleString()}`);
+  setText('stepCaloriesText', `${stats.stepCalories || 0} kcal`);
+  setText('stepDistanceText', `${stats.stepDistanceKm || 0} km`);
+  setText('stepMinutesText', `${stats.stepActiveMinutes || 0} min`);
+  setProgress('stepsBar', completion);
+
+  const ring = $('#stepsRing');
+  if (ring) {
+    ring.dataset.label = `${completion}%`;
+    ring.style.setProperty('--p', completion);
+  }
+
+  const history = $('#stepHistory');
+  if (history) {
+    history.innerHTML = logs.length ? logs.slice(-7).reverse().map((log) => `
+      <div class="list-row">
+        <div>
+          <p class="list-title">${Number(log.steps || 0).toLocaleString()} steps</p>
+          <p class="list-meta">${log.date} · ${log.distanceKm || 0} km · ${log.source || 'manual'}</p>
+        </div>
+        <span class="pill ${log.steps >= log.goal ? 'good' : ''}">${Math.min(100, Math.round((log.steps / log.goal) * 100))}%</span>
+      </div>
+    `).join('') : '<div class="empty-state">Step history appears after you log your first walk.</div>';
+  }
+}
+
 function lineChart(id, labels, data, label, color) {
   const canvas = document.getElementById(id);
   if (!canvas || !window.Chart) return;
@@ -382,6 +425,7 @@ function renderCharts(state) {
   barChart('caloriesChart', chart.labels || [], chart.calories || [], 'Calories', '#5eead4');
   barChart('consistencyChart', chart.labels || [], chart.workouts || [], 'Workouts', '#fbbf24');
   lineChart('strengthChart', strengthPoints.map((p) => p.label), strengthPoints.map((p) => p.value), 'Strength', '#a78bfa');
+  barChart('stepsChart', chart.labels || [], chart.steps || [], 'Steps', '#38bdf8');
 }
 
 function renderDashboard(state) {
@@ -421,6 +465,7 @@ function renderDashboard(state) {
   renderHeatmap((state.workouts || []).filter((workout) => workout.status === 'completed'));
   renderWorkoutList(state.workouts || []);
   renderNutrition(state);
+  renderSteps(state);
   renderBody(state);
   renderGoals(state.goals || []);
   renderCharts(state);
@@ -552,6 +597,114 @@ function initDashboardForms() {
       await loadDashboard();
     } catch (error) {
       toast(error.message);
+    }
+  });
+
+  $('#stepsForm')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    try {
+      await api('/steps', {
+        method: 'POST',
+        body: JSON.stringify({ ...formObject(event.currentTarget), date: today(), source: 'manual' })
+      });
+      closeModalFrom(event.currentTarget);
+      toast('Footsteps saved');
+      await loadDashboard();
+    } catch (error) {
+      toast(error.message);
+    }
+  });
+}
+
+async function saveSensorSteps() {
+  if (!stepCounterState.sessionSteps) {
+    toast('No sensor steps to save yet');
+    return;
+  }
+
+  try {
+    await api('/steps', {
+      method: 'POST',
+      body: JSON.stringify({
+        increment: stepCounterState.sessionSteps,
+        date: today(),
+        goal: dashboardState?.stats?.stepGoal || 10000,
+        source: 'sensor'
+      })
+    });
+    stepCounterState.sessionSteps = 0;
+    setText('sensorSessionSteps', '0');
+    toast('Sensor steps saved');
+    await loadDashboard();
+  } catch (error) {
+    toast(error.message);
+  }
+}
+
+async function initStepCounter() {
+  const startButton = $('#startStepCounterBtn');
+  const saveButton = $('#saveSensorStepsBtn');
+  if (!startButton) return;
+
+  saveButton?.addEventListener('click', saveSensorSteps);
+
+  const updateStatus = (message) => setText('sensorStepStatus', message);
+  const stop = () => {
+    if (stepCounterState.handler) {
+      window.removeEventListener('devicemotion', stepCounterState.handler);
+    }
+    stepCounterState.running = false;
+    stepCounterState.handler = null;
+    startButton.querySelector('span').textContent = 'Start Sensor';
+    updateStatus('Sensor paused. Save the session or continue counting.');
+  };
+
+  const start = async () => {
+    if (!window.DeviceMotionEvent) {
+      updateStatus('Motion sensor is not available in this browser. Use manual steps.');
+      return;
+    }
+
+    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+      const permission = await DeviceMotionEvent.requestPermission();
+      if (permission !== 'granted') {
+        updateStatus('Motion permission was not granted. Use manual steps.');
+        return;
+      }
+    }
+
+    stepCounterState.running = true;
+    startButton.querySelector('span').textContent = 'Pause Sensor';
+    updateStatus('Sensor running. Keep your phone with you while walking.');
+
+    stepCounterState.handler = (event) => {
+      const reading = event.accelerationIncludingGravity || event.acceleration;
+      if (!reading) return;
+
+      const x = reading.x || 0;
+      const y = reading.y || 0;
+      const z = reading.z || 0;
+      const magnitude = Math.sqrt(x * x + y * y + z * z);
+      const now = Date.now();
+      const crossedPeak = magnitude > 13.2 && stepCounterState.lastMagnitude <= 12.4;
+
+      if (crossedPeak && now - stepCounterState.lastPeakAt > 320) {
+        stepCounterState.sessionSteps += 1;
+        stepCounterState.lastPeakAt = now;
+        setText('sensorSessionSteps', stepCounterState.sessionSteps.toLocaleString());
+      }
+
+      stepCounterState.lastMagnitude = magnitude;
+    };
+
+    window.addEventListener('devicemotion', stepCounterState.handler);
+  };
+
+  startButton.addEventListener('click', () => {
+    if (stepCounterState.running) {
+      stop();
+    } else {
+      start().catch((error) => updateStatus(error.message));
     }
   });
 }
@@ -687,6 +840,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDashboard();
     initDashboardForms();
     initTimers();
+    initStepCounter();
   }
 
   if (page() === 'admin') {

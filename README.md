@@ -9,6 +9,7 @@ Premium gym-focused fitness tracker built with HTML, CSS, vanilla JavaScript, No
 - Workout logging with exercises, sets, reps, weight, PR history, categories, and rest timer
 - Nutrition tracking for calories, protein, carbs, fats, meals, water, and macro progress
 - Body tracking with BMI, weight history, body fat, measurements, and progress photo uploads
+- Footstep tracking with manual step logs, daily goals, estimated distance, walking calories, active minutes, and mobile motion-sensor counting where supported
 - Chart.js analytics for weight, calories, consistency, strength, and admin growth
 - Smart JavaScript recommendations, rewards, motivational copy, daily challenges, leaderboard surfaces
 - Responsive Apple-inspired glassmorphism UI with dark/light mode, mobile bottom nav, modals, animations, and PWA support

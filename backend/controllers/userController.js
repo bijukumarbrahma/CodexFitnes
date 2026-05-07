@@ -4,6 +4,7 @@ const NutritionLog = require('../models/NutritionLog');
 const BodyStat = require('../models/BodyStat');
 const Goal = require('../models/Goal');
 const ProgressPhoto = require('../models/ProgressPhoto');
+const StepLog = require('../models/StepLog');
 const { cleanString, toNumber } = require('../utils/validation');
 
 const todayKey = () => new Date().toISOString().slice(0, 10);
@@ -48,15 +49,23 @@ exports.dashboard = async (req, res, next) => {
   try {
     const days = lastNDays(14);
     const today = todayKey();
-    const [workouts, nutritionLogs, bodyStats, goals, photos] = await Promise.all([
+    const [workouts, nutritionLogs, bodyStats, goals, photos, stepLogs] = await Promise.all([
       Workout.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(80),
       NutritionLog.find({ user: req.user._id, date: { $in: days } }),
       BodyStat.find({ user: req.user._id }).sort({ date: 1 }).limit(60),
       Goal.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(20),
-      ProgressPhoto.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(8)
+      ProgressPhoto.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(8),
+      StepLog.find({ user: req.user._id, date: { $in: days } }).sort({ date: 1 })
     ]);
 
     const todayNutrition = nutritionLogs.find((log) => log.date === today);
+    const todaySteps = stepLogs.find((log) => log.date === today) || {
+      steps: 0,
+      goal: 10000,
+      distanceKm: 0,
+      calories: 0,
+      activeMinutes: 0
+    };
     const macroTotals = sumMeals(todayNutrition);
     const completed = workouts.filter((w) => w.status === 'completed');
     const weekStart = new Date();
@@ -77,6 +86,7 @@ exports.dashboard = async (req, res, next) => {
       labels: days.map((day) => day.slice(5)),
       calories: days.map((day) => sumMeals(nutritionLogs.find((log) => log.date === day)).calories),
       workouts: days.map((day) => completed.filter((w) => (w.completedAt || w.updatedAt).toISOString().slice(0, 10) === day).length),
+      steps: days.map((day) => stepLogs.find((log) => log.date === day)?.steps || 0),
       weight: bodyStats.slice(-14).map((stat) => ({ date: stat.date.slice(5), value: stat.weightKg })),
       strength: completed.slice(0, 12).reverse().map((w) => ({
         label: w.title.slice(0, 10),
@@ -100,6 +110,12 @@ exports.dashboard = async (req, res, next) => {
         weeklyWorkouts: weeklyWorkouts.length,
         caloriesBurned: weeklyWorkouts.reduce((sum, w) => sum + (w.caloriesBurned || 0), 0),
         goalCompletion: totalGoalProgress,
+        steps: todaySteps.steps,
+        stepGoal: todaySteps.goal,
+        stepDistanceKm: todaySteps.distanceKm,
+        stepCalories: todaySteps.calories,
+        stepActiveMinutes: todaySteps.activeMinutes,
+        stepCompletion: Math.min(100, Math.round((todaySteps.steps / todaySteps.goal) * 100)),
         bmi,
         weight,
         weightDelta: previousBody ? +(weight - previousBody.weightKg).toFixed(1) : 0,
@@ -110,6 +126,7 @@ exports.dashboard = async (req, res, next) => {
       bodyStats,
       goals,
       photos,
+      stepLogs,
       chart,
       smart: {
         greeting: `Ready for a sharp session, ${req.user.name.split(' ')[0]}?`,
