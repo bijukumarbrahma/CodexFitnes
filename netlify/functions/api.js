@@ -35,19 +35,21 @@ exports.handler = async (event, context) => {
     }
   }
 
-  // If caller already used `/api/...` (without the wrapper), keep it.
-  // Express app mounts middleware at `/api`, so remove leading `/api`.
-  if (nextPath.startsWith('/api/')) {
-    nextPath = nextPath.slice('/api'.length);
-  } else if (nextPath === '/api') {
+  // Normalize to match Express mounting.
+  // Express app mounts API handlers at: app.use('/api', supabaseApi)
+  // The supabaseApi middleware expects req.path like: '/auth/login', '/auth/register', ...
+  // So we must strip any leading '/api' prefix from event.path.
+  if (nextPath === '/api') {
     nextPath = '/';
+  } else if (nextPath.startsWith('/api/')) {
+    nextPath = nextPath.slice('/api'.length);
   }
 
-  // Ensure starts with `/`
+  // Ensure starts with '/'
   if (nextPath && !nextPath.startsWith('/')) nextPath = `/${nextPath}`;
 
-  // Only overwrite if we were able to normalize.
-  if (nextPath) event.path = nextPath;
+  event.path = nextPath || '/';
+
 
   return handler(event, context);
 };
