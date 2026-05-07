@@ -107,3 +107,18 @@ backend/
 - Put the app behind HTTPS.
 - Replace the forgot password placeholder with a signed token email flow.
 - Use persistent object storage for uploads in production.
+
+## Netlify Deployment
+
+This project includes Netlify Functions for the Express API. Netlify serves the frontend files and redirects `/api/*` to `netlify/functions/api.js`.
+
+In Netlify, set these environment variables under `Site configuration > Environment variables`:
+
+```text
+MONGO_URI=your MongoDB Atlas URI
+JWT_SECRET=a long random secret
+JWT_EXPIRES_IN=7d
+CLIENT_URL=https://your-site-name.netlify.app
+```
+
+Then redeploy the site. Login and signup will call the same deployed domain at `/api/auth/login` and `/api/auth/register`.

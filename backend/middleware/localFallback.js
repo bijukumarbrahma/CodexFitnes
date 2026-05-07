@@ -128,6 +128,14 @@ function localDashboard(user) {
 module.exports = async function localFallback(req, res, next) {
   if (mongoose.connection.readyState === 1) return next();
 
+  const uri = process.env.MONGO_URI || '';
+  const allowLocalFallback = process.env.ALLOW_LOCAL_FALLBACK === 'true'
+    || !uri
+    || uri.includes('127.0.0.1')
+    || uri.includes('localhost');
+
+  if (!allowLocalFallback) return next();
+
   const path = req.path;
   const method = req.method;
   const now = new Date().toISOString();
