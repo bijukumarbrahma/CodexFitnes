@@ -1,7 +1,7 @@
 {
   "name": "codex-fitness",
   "version": "1.0.0",
-  "description": "Premium gym-focused fitness tracker with vanilla frontend, Express API, and MongoDB.",
+  "description": "Premium gym-focused fitness tracker with vanilla frontend, Express API, and Supabase or MongoDB.",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
@@ -18,7 +18,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@supabase/supabase-js": "^2.105.3",
     "bcryptjs": "^2.4.3",
+    "@supabase/supabase-js": "^2.84.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

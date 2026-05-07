@@ -10,6 +10,8 @@ const connectDB = require('./backend/config/db');
 const errorHandler = require('./backend/middleware/error');
 const requireDatabase = require('./backend/middleware/database');
 const localFallback = require('./backend/middleware/localFallback');
+const supabaseApi = require('./backend/middleware/supabaseApi');
+const supabaseConfig = require('./backend/config/supabase');
 
 const authRoutes = require('./backend/routes/authRoutes');
 const userRoutes = require('./backend/routes/userRoutes');
@@ -24,7 +26,9 @@ const adminRoutes = require('./backend/routes/adminRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-connectDB();
+if (!supabaseConfig.enabled()) {
+  connectDB();
+}
 
 app.use(helmet({
   contentSecurityPolicy: false,
@@ -47,11 +51,19 @@ app.use('/uploads', express.static(path.join(__dirname, 'backend', 'uploads')));
 app.use(express.static(__dirname));
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', app: 'Codex Fitness', time: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    app: 'Codex Fitness',
+    database: supabaseConfig.enabled() ? 'supabase' : 'mongodb',
+    time: new Date().toISOString()
+  });
 });
 
+app.use('/api', supabaseApi);
 app.use('/api', localFallback);
-app.use('/api', requireDatabase);
+if (!supabaseConfig.enabled()) {
+  app.use('/api', requireDatabase);
+}
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/workouts', workoutRoutes);

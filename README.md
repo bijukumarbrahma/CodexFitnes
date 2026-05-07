@@ -1,6 +1,6 @@
 # Codex Fitness
 
-Premium gym-focused fitness tracker built with HTML, CSS, vanilla JavaScript, Node.js, Express, JWT auth, and MongoDB.
+Premium gym-focused fitness tracker built with HTML, CSS, vanilla JavaScript, Node.js, Express, JWT auth, and Supabase or MongoDB.
 
 ## Features
 
@@ -108,6 +108,27 @@ backend/
 - Replace the forgot password placeholder with a signed token email flow.
 - Use persistent object storage for uploads in production.
 
+## Supabase Setup
+
+The app can use Supabase instead of MongoDB. Supabase mode keeps the existing frontend unchanged and serves the same `/api/*` routes through Express or Netlify Functions.
+
+1. Create a Supabase project.
+2. Open `SQL Editor` and run [supabase/schema.sql](supabase/schema.sql).
+3. Copy your project URL, anon key, and service role key from `Project Settings > API`.
+4. Add these environment variables locally and in Netlify:
+
+```text
+USE_SUPABASE=true
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+JWT_SECRET=a-long-random-secret
+JWT_EXPIRES_IN=7d
+CLIENT_URL=https://your-site-name.netlify.app
+```
+
+Do not expose `SUPABASE_SERVICE_ROLE_KEY` in frontend JavaScript. It belongs only in `.env` or Netlify environment variables.
+
 ## Netlify Deployment
 
 This project includes Netlify Functions for the Express API. Netlify serves the frontend files and redirects `/api/*` to `netlify/functions/api.js`.
@@ -115,7 +136,10 @@ This project includes Netlify Functions for the Express API. Netlify serves the 
 In Netlify, set these environment variables under `Site configuration > Environment variables`:
 
 ```text
-MONGO_URI=your MongoDB Atlas URI
+USE_SUPABASE=true
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 JWT_SECRET=a long random secret
 JWT_EXPIRES_IN=7d
 CLIENT_URL=https://your-site-name.netlify.app
