@@ -1,0 +1,16 @@
+{
+  "name": "Codex Fitness",
+  "short_name": "CodexFit",
+  "description": "Premium gym workout, nutrition, body, and analytics tracker.",
+  "start_url": "/dashboard.html",
+  "display": "standalone",
+  "background_color": "#f5fbff",
+  "theme_color": "#38bdf8",
+  "icons": [
+    {
+      "src": "/assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
