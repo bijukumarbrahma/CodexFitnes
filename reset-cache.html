@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reset App Cache | Codex Fitness</title>
-  <link rel="stylesheet" href="css/styles.css?v=4">
+  <link rel="stylesheet" href="css/styles.css?v=5">
 </head>
 <body>
   <main class="auth-page" data-page="reset">
@@ -41,7 +41,7 @@
         status.textContent = 'Cache cleared. Opening the fresh register page now.';
         document.getElementById('continueLink').style.display = 'inline-flex';
         setTimeout(() => {
-          location.href = 'register.html?v=' + Date.now();
+          location.href = 'register.html?v=5&t=' + Date.now();
         }, 900);
       } catch (error) {
         status.textContent = 'Reset finished with a warning: ' + error.message;

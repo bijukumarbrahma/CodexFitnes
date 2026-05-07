@@ -1,4 +1,4 @@
-const API_BASE = '/api';
+const API_BASE = `${location.origin}/api`;
 const storage = {
   get token() { return localStorage.getItem('fit_token'); },
   set token(value) { localStorage.setItem('fit_token', value); },
@@ -35,10 +35,20 @@ async function api(path, options = {}) {
 
   const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const contentType = response.headers.get('content-type') || '';
-  const data = contentType.includes('application/json') ? await response.json() : {};
+  const raw = await response.text();
+  let data = {};
+
+  if (contentType.includes('application/json') && raw) {
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      data = {};
+    }
+  }
 
   if (!response.ok) {
-    throw new Error(data.message || 'Request failed');
+    const preview = raw ? raw.replace(/\s+/g, ' ').slice(0, 90) : '';
+    throw new Error(data.message || `Request failed (${response.status}) ${preview}`);
   }
 
   return data;
