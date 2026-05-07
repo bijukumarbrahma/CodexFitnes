@@ -37,7 +37,7 @@ async function main() {
   console.log(`Service role: ${hide(service)}`);
 
   const supabase = createClient(url, service, { auth: { persistSession: false } });
-  const { error } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
+  const { error } = await supabase.from('profiles').select('id').limit(1);
 
   if (error) {
     console.log('\nSupabase reached, but schema check failed:');

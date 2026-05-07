@@ -7,6 +7,7 @@
     "start": "node app.js",
     "dev": "nodemon app.js",
     "setup:supabase": "node scripts/setup-supabase.js",
+    "check:supabase": "node scripts/check-supabase.js",
     "check": "node --check app.js && node --check backend/middleware/supabaseApi.js && node --check backend/config/supabase.js"
   },
   "keywords": [
