@@ -1,4 +1,4 @@
-const CACHE_NAME = 'codex-fitness-v2';
+const CACHE_NAME = 'codex-fitness-v4';
 const CORE_ASSETS = [
   '/',
   '/index.html',
