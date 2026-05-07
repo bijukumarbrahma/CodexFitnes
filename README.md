@@ -1,10 +1,10 @@
 # Codex Fitness
 
-Premium gym-focused fitness tracker built with HTML, CSS, vanilla JavaScript, Node.js, Express, JWT auth, and Supabase or MongoDB.
+Premium gym-focused fitness tracker built with HTML, CSS, vanilla JavaScript, Node.js, Express, JWT auth, and Supabase.
 
 ## Features
 
-- Signup, login, JWT sessions, hashed passwords, forgot password UI, secure logout
+- Signup, login, JWT sessions, Supabase Auth password handling, forgot password UI, secure logout
 - Dashboard for calories, streaks, water, BMI, weekly workouts, calories burned, goals, timer, recovery, and heatmap
 - Workout logging with exercises, sets, reps, weight, PR history, categories, and rest timer
 - Nutrition tracking for calories, protein, carbs, fats, meals, water, and macro progress
@@ -29,38 +29,33 @@ Premium gym-focused fitness tracker built with HTML, CSS, vanilla JavaScript, No
    copy .env.example .env
    ```
 
-3. Start MongoDB locally, or set `MONGO_URI` in `.env` to your MongoDB Atlas connection string.
+3. Create a Supabase project and run [supabase/schema.sql](supabase/schema.sql) in the Supabase SQL Editor.
 
-4. Start the app:
+4. Fill `.env` with your Supabase values:
+
+   ```text
+   USE_SUPABASE=true
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   JWT_SECRET=a-long-random-secret
+   JWT_EXPIRES_IN=7d
+   CLIENT_URL=http://localhost:5000
+   ```
+
+5. Start the app:
 
    ```bash
    npm run dev
    ```
 
-5. Open:
+6. Open:
 
    ```text
    http://localhost:5000
    ```
 
-If MongoDB is not installed yet, the app automatically uses a local development JSON store so signup/login still work on your computer. MongoDB is still used automatically as soon as `MONGO_URI` connects.
-
-## Demo Data
-
-After MongoDB is running, seed a demo admin account:
-
-```bash
-npm run seed
-```
-
-Login:
-
-```text
-demo@codexfit.demo
-password123
-```
-
-The first real account registered in an empty database also becomes an admin.
+The first account registered in an empty Supabase `profiles` table becomes an admin.
 
 ## Project Structure
 
@@ -75,11 +70,9 @@ js/app.js
 app.js
 backend/
   config/
-  controllers/
   middleware/
-  models/
-  routes/
-  uploads/
+supabase/schema.sql
+netlify/functions/api.js
 ```
 
 ## API Overview
@@ -97,20 +90,20 @@ backend/
 - `GET|PUT /api/body`
 - `GET|POST /api/goals`
 - `PUT|DELETE /api/goals/:id`
-- `GET|POST /api/photos`
+- `GET|POST /api/photos` currently returns a Supabase Storage setup message
 - `GET /api/admin/overview`
 
 ## Production Notes
 
 - Set a long random `JWT_SECRET`.
-- Use MongoDB Atlas or a managed MongoDB service.
+- Keep `SUPABASE_SERVICE_ROLE_KEY` only in server environment variables.
 - Put the app behind HTTPS.
 - Replace the forgot password placeholder with a signed token email flow.
-- Use persistent object storage for uploads in production.
+- Wire Supabase Storage before enabling progress photo uploads in production.
 
 ## Supabase Setup
 
-The app can use Supabase instead of MongoDB. Supabase mode keeps the existing frontend unchanged and serves the same `/api/*` routes through Express or Netlify Functions.
+The app uses Supabase for auth and database storage. The existing frontend calls the same `/api/*` routes through Express or Netlify Functions.
 
 1. Create a Supabase project.
 2. Open `SQL Editor` and run [supabase/schema.sql](supabase/schema.sql).

@@ -6,29 +6,12 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
-const connectDB = require('./backend/config/db');
 const errorHandler = require('./backend/middleware/error');
-const requireDatabase = require('./backend/middleware/database');
-const localFallback = require('./backend/middleware/localFallback');
 const supabaseApi = require('./backend/middleware/supabaseApi');
 const supabaseConfig = require('./backend/config/supabase');
 
-const authRoutes = require('./backend/routes/authRoutes');
-const userRoutes = require('./backend/routes/userRoutes');
-const workoutRoutes = require('./backend/routes/workoutRoutes');
-const nutritionRoutes = require('./backend/routes/nutritionRoutes');
-const bodyRoutes = require('./backend/routes/bodyRoutes');
-const goalRoutes = require('./backend/routes/goalRoutes');
-const photoRoutes = require('./backend/routes/photoRoutes');
-const stepRoutes = require('./backend/routes/stepRoutes');
-const adminRoutes = require('./backend/routes/adminRoutes');
-
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-if (!supabaseConfig.enabled()) {
-  connectDB();
-}
 
 app.use(helmet({
   contentSecurityPolicy: false,
@@ -47,32 +30,24 @@ if (process.env.NETLIFY !== 'true') {
   }));
 }
 
-app.use('/uploads', express.static(path.join(__dirname, 'backend', 'uploads')));
 app.use(express.static(__dirname));
 
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     app: 'Codex Fitness',
-    database: supabaseConfig.enabled() ? 'supabase' : 'mongodb',
+    database: 'supabase',
+    configured: supabaseConfig.configured(),
     time: new Date().toISOString()
   });
 });
 
 app.use('/api', supabaseApi);
-app.use('/api', localFallback);
-if (!supabaseConfig.enabled()) {
-  app.use('/api', requireDatabase);
-}
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/workouts', workoutRoutes);
-app.use('/api/nutrition', nutritionRoutes);
-app.use('/api/body', bodyRoutes);
-app.use('/api/goals', goalRoutes);
-app.use('/api/photos', photoRoutes);
-app.use('/api/steps', stepRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api', (req, res) => {
+  res.status(503).json({
+    message: 'Supabase is not configured. Set USE_SUPABASE=true, SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_SERVICE_ROLE_KEY.'
+  });
+});
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
