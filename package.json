@@ -1,37 +1,12 @@
 {
   "name": "codex-fitness",
-  "version": "1.0.0",
-  "description": "Premium gym-focused fitness tracker with vanilla frontend, Express API, and Supabase.",
-  "main": "app.js",
+  "version": "2.0.0",
+  "description": "Premium gym-focused fitness tracker with vanilla frontend and Firebase.",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
-    "setup:supabase": "node scripts/setup-supabase.js",
-    "check:supabase": "node scripts/check-supabase.js",
-    "check": "node --check app.js && node --check backend/middleware/supabaseApi.js && node --check backend/config/supabase.js"
+    "dev": "npx serve . -l 5000",
+    "start": "npx serve . -l 5000"
   },
-  "keywords": [
-    "fitness",
-    "gym",
-    "tracker",
-    "express",
-    "supabase"
-  ],
+  "keywords": ["fitness", "gym", "tracker", "firebase"],
   "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "@supabase/ssr": "^0.10.3",
-    "@supabase/supabase-js": "^2.105.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "express-rate-limit": "^7.4.1",
-    "helmet": "^8.0.0",
-    "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.0",
-    "serverless-http": "^4.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.9"
-  }
+  "license": "MIT"
 }
