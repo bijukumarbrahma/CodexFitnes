@@ -3,10 +3,14 @@
   "version": "2.0.0",
   "description": "Premium gym-focused fitness tracker with vanilla frontend and Firebase.",
   "scripts": {
-    "dev": "npx serve . -l 5000",
-    "start": "npx serve . -l 5000"
+    "start": "node app.js",
+    "dev": "node app.js",
+    "build": "node scripts/build-config.js"
   },
   "keywords": ["fitness", "gym", "tracker", "firebase"],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
 }

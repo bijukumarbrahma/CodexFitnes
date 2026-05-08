@@ -1,7 +1,8 @@
-/* Codex Fitness - Static file server (development only) */
+/* Codex Fitness - Static file server with dynamic Firebase config */
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 
 const PORT = process.env.PORT || 5000;
 const MIME = {
@@ -11,8 +12,37 @@ const MIME = {
   '.webmanifest': 'application/manifest+json'
 };
 
+/* Generate firebase-config.js content from environment variables */
+function generateFirebaseConfig() {
+  return `/* Firebase configuration - generated from environment variables */
+const firebaseConfig = {
+  apiKey: "${process.env.FIREBASE_API_KEY || ''}",
+  authDomain: "${process.env.FIREBASE_AUTH_DOMAIN || ''}",
+  projectId: "${process.env.FIREBASE_PROJECT_ID || ''}",
+  storageBucket: "${process.env.FIREBASE_STORAGE_BUCKET || ''}",
+  messagingSenderId: "${process.env.FIREBASE_MESSAGING_SENDER_ID || ''}",
+  appId: "${process.env.FIREBASE_APP_ID || ''}",
+  measurementId: "${process.env.FIREBASE_MEASUREMENT_ID || ''}"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+`;
+}
+
 http.createServer((req, res) => {
-  let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url.split('?')[0]);
+  const url = req.url.split('?')[0];
+
+  /* Serve firebase-config.js dynamically from .env */
+  if (url === '/js/firebase-config.js') {
+    res.writeHead(200, { 'Content-Type': 'application/javascript', 'Cache-Control': 'no-cache' });
+    res.end(generateFirebaseConfig());
+    return;
+  }
+
+  let filePath = path.join(__dirname, url === '/' ? 'index.html' : url);
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     filePath = path.join(__dirname, 'index.html');
   }
