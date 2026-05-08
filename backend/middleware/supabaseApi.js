@@ -290,7 +290,7 @@ module.exports = async function supabaseApi(req, res, next) {
       });
     }
 
-    if (method === 'POST' && path === '/auth/login') {
+    if (method === 'POST' && (path === '/auth/login' || path === '/api/auth/login')) {
       // Minimal diagnostics (helpful on Netlify)
       try {
         console.log('[auth/login]', {

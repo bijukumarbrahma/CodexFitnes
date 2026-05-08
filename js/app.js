@@ -125,7 +125,7 @@ function initAuthForms() {
       });
       storage.token = data.token;
       storage.user = data.user;
-      toast('Session restored');
+toast('Session restored');
       location.href = 'dashboard.html';
     } catch (error) {
       toast(error.message);
