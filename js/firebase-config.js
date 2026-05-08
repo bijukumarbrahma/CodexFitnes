@@ -1,12 +1,12 @@
 /* Firebase configuration for Codex Fitness */
 const firebaseConfig = {
-  apiKey: "AIzaSyBzKo6pH6sCjh3M9TyOKO6F1ek4ejzsppQ",
-  authDomain: "fitness-tracker-2c003.firebaseapp.com",
-  projectId: "fitness-tracker-2c003",
-  storageBucket: "fitness-tracker-2c003.firebasestorage.app",
-  messagingSenderId: "892853719584",
-  appId: "1:892853719584:web:649341e0143a091fa3a245",
-  measurementId: "G-8ZFW145LDV"
+  apiKey: "AIzaSyD1_o5WlzeZQ4DZ1Bka1BG-mV3R6zvx37E",
+  authDomain: "fittnesx-498da.firebaseapp.com",
+  projectId: "fittnesx-498da",
+  storageBucket: "fittnesx-498da.firebasestorage.app",
+  messagingSenderId: "967013112846",
+  appId: "1:967013112846:web:c63f79f9c7760367be705f",
+  measurementId: "G-WL9HVZ7R3C"
 };
 
 firebase.initializeApp(firebaseConfig);
