@@ -45,8 +45,10 @@ function initAuthForms() {
       const { email, password } = formObject(e.currentTarget);
       const cred = await auth.signInWithEmailAndPassword(email, password);
       const profile = await FireData.getProfile(cred.user.uid);
-      if (profile) { storage.user = profile; await FireData.updateProfile(cred.user.uid, { lastLoginAt: new Date().toISOString() }); }
-      toast('Session restored'); location.href = 'dashboard.html';
+      if (profile) storage.user = profile;
+      try { await db.collection('profiles').doc(cred.user.uid).set({ lastLoginAt: new Date().toISOString() }, { merge: true }); } catch {}
+      toast('Session restored');
+      location.href = 'dashboard.html';
     } catch (err) { toast(err.message); }
   });
   $('#registerForm')?.addEventListener('submit', async (e) => {

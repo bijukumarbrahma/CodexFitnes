@@ -46,8 +46,10 @@ const FireData = {
     return { _id: ref.id, ...payload };
   },
   async getWorkouts(uid) {
-    const snap = await db.collection('workouts').where('userId', '==', uid).orderBy('createdAt', 'desc').limit(80).get();
-    return snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    try {
+      const snap = await db.collection('workouts').where('userId', '==', uid).orderBy('createdAt', 'desc').limit(80).get();
+      return snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    } catch { return []; }
   },
   async addMeal(uid, data) {
     const date = data.date || todayKey();
@@ -94,8 +96,10 @@ const FireData = {
     return { _id: docId, ...payload };
   },
   async getBodyStats(uid) {
-    const snap = await db.collection('body_stats').where('userId', '==', uid).orderBy('date', 'asc').limit(60).get();
-    return snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    try {
+      const snap = await db.collection('body_stats').where('userId', '==', uid).orderBy('date', 'asc').limit(60).get();
+      return snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    } catch { return []; }
   },
   async addGoal(uid, data) {
     const payload = {
@@ -107,8 +111,10 @@ const FireData = {
     return { _id: ref.id, ...payload };
   },
   async getGoals(uid) {
-    const snap = await db.collection('goals').where('userId', '==', uid).orderBy('createdAt', 'desc').limit(20).get();
-    return snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    try {
+      const snap = await db.collection('goals').where('userId', '==', uid).orderBy('createdAt', 'desc').limit(20).get();
+      return snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    } catch { return []; }
   },
   async addSteps(uid, data) {
     const date = data.date || todayKey();
@@ -137,8 +143,10 @@ const FireData = {
     return results.sort((a, b) => a.date.localeCompare(b.date));
   },
   async getPhotos(uid) {
-    const snap = await db.collection('progress_photos').where('userId', '==', uid).orderBy('createdAt', 'desc').limit(8).get();
-    return snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    try {
+      const snap = await db.collection('progress_photos').where('userId', '==', uid).orderBy('createdAt', 'desc').limit(8).get();
+      return snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    } catch { return []; }
   },
   async buildDashboard(uid) {
     const days = lastNDays(14);
