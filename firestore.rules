@@ -1,0 +1,53 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Profiles: each user can read/write only their own profile (docId == uid)
+    match /profiles/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Workouts: each user can CRUD their own workouts
+    match /workouts/{docId} {
+      allow read, write: if request.auth != null && resource == null && request.resource.data.userId == request.auth.uid;
+      allow read, write: if request.auth != null && resource != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Nutrition logs: user can CRUD their own logs
+    match /nutrition_logs/{docId} {
+      allow read, write: if request.auth != null && resource == null && request.resource.data.userId == request.auth.uid;
+      allow read, write: if request.auth != null && resource != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Body stats: user can CRUD their own stats
+    match /body_stats/{docId} {
+      allow read, write: if request.auth != null && resource == null && request.resource.data.userId == request.auth.uid;
+      allow read, write: if request.auth != null && resource != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Goals: user can CRUD their own goals
+    match /goals/{docId} {
+      allow read, write: if request.auth != null && resource == null && request.resource.data.userId == request.auth.uid;
+      allow read, write: if request.auth != null && resource != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Step logs: user can CRUD their own step logs
+    match /step_logs/{docId} {
+      allow read, write: if request.auth != null && resource == null && request.resource.data.userId == request.auth.uid;
+      allow read, write: if request.auth != null && resource != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Progress photos: user can CRUD their own photos
+    match /progress_photos/{docId} {
+      allow read, write: if request.auth != null && resource == null && request.resource.data.userId == request.auth.uid;
+      allow read, write: if request.auth != null && resource != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+  }
+}
