@@ -39,6 +39,34 @@ function decorate() {
   }
 }
 function initAuthForms() {
+  const handleGoogleAuth = async () => {
+    try {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      const cred = await auth.signInWithPopup(provider);
+      let profile = await FireData.getProfile(cred.user.uid);
+      if (!profile) {
+        profile = await FireData.createProfile(cred.user.uid, { 
+          name: cred.user.displayName || 'Athlete', 
+          email: cred.user.email, 
+          role: 'user' 
+        });
+        toast('Account created');
+      } else {
+        try { await db.collection('profiles').doc(cred.user.uid).set({ lastLoginAt: new Date().toISOString() }, { merge: true }); } catch {}
+        toast('Session restored');
+      }
+      storage.user = profile;
+      location.href = 'dashboard.html';
+    } catch (err) { 
+      if (err.code !== 'auth/popup-closed-by-user') {
+        toast(err.message); 
+      }
+    }
+  };
+
+  $('#googleLoginBtn')?.addEventListener('click', handleGoogleAuth);
+  $('#googleRegisterBtn')?.addEventListener('click', handleGoogleAuth);
+
   $('#loginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     try {
