@@ -7,10 +7,16 @@
     "dev": "node app.js",
     "build": "node scripts/build-config.js"
   },
-  "keywords": ["fitness", "gym", "tracker", "firebase"],
+  "keywords": [
+    "fitness",
+    "gym",
+    "tracker",
+    "firebase"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "firebase-admin": "^13.9.0"
   }
 }
